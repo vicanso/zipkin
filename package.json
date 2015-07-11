@@ -1,0 +1,16 @@
+{
+  "name": "zipkin",
+  "description": "zipkin",
+  "version": "0.0.1",
+  "author": {},
+  "keywords": [],
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "lodash": "^3.10.0",
+    "scribe": "0.0.9",
+    "tryfer": "^0.2.10"
+  },
+  "devDependencies": {},
+  "readme": "zipkin"
+}

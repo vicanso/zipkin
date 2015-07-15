@@ -9,6 +9,7 @@ var _ = require('lodash');
 // 保存相关的配置信息
 var localOptions;
 
+
 exports.initialize = initialize;
 exports.trace = trace;
 exports.childTrace = childTrace;
@@ -100,7 +101,7 @@ function childTrace(traceName, options) {
   if (!traceName || !options) {
     throw new Error('traceName and options can not be null');
   }
-  options = _.clone(options);
+  options = _.pick(options, ['spanId', 'traceId']);
   options.parentSpanId = options.spanId;
   delete options.spanId;
   return trace(traceName, options);

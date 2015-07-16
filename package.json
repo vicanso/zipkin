@@ -1,9 +1,11 @@
 {
   "name": "zipkin",
   "description": "zipkin",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "author": {},
-  "keywords": [],
+  "keywords": [
+    "zipkin"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/vicanso/zipkin.git"
@@ -13,7 +15,7 @@
   "dependencies": {
     "lodash": "^3.10.0",
     "scribe": "0.0.9",
-    "tryfer": "^0.2.10"
+    "tryfer": "^0.2.11"
   },
   "devDependencies": {
     "gulp": "^3.9.0",

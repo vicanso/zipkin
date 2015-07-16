@@ -10,20 +10,86 @@ zipkin主要关注三个属性：
 
 
 ```
-var traceA = zipkin.trace('A');
-// A服务调用的东西
-setTimeout(function(){
-  var traceB = zipkin.childTrace('B', traceA);
-  setTimeout(function(){
-    // B服务相关的一些参数记录
-    traceB.done({
-      code : 'xxx'
-    });
-    // A服务相关的一些参数记录
-    traceA.done({
-      name : 'xxx'
+var zipkin = require('./index');
+zipkin.initialize({
+  localTesting : true,
+  debug : true
+});
+
+(function(){
+  var done = zipkin.trace('getUserAccount').done;
+  getUserAccount(function(err, account) {
+    done({
+      account : account
     });
   });
-}, 1000);
+
+  getData(function(){});
+})();
+
+setTimeout(function(){}, 120 * 1000);
+
+
+function getUserAccount(cbf) {
+  setTimeout(function() {
+    cbf(null, 'vicanso');
+  }, 3000);
+}
+
+
+function getData(cbf) {
+  var t =  zipkin.trace('getData');
+  var httpHeaders = zipkin.getHeaders(t);
+  console.dir(httpHeaders);
+  var childTrace = zipkin.childTrace('getUserAccount', t);
+  getUserAccount(function(err, account){
+    childTrace.done({
+      account : account
+    });
+    setTimeout(function(){
+      t.done();
+    }, 1000);
+  })
+}
+
 
 ```
+
+
+### initialize
+
+初始化函数
+
+```
+zipkin.initialize({
+  tracers : [],
+  host : 'localhost',
+  port : 1463,
+  scribeStoreName : 'zipkin',
+  maxTraces : 50,
+  autoReconnect : true,
+  // 设为true则添加debugTracer，输出到控制台
+  debug : false,
+  // 设置为true则不连接服务器，只本地调试
+  localTesting : false
+})；
+```
+
+
+
+### trace
+
+- traceName 服务名称
+
+- options optional
+
+trace服务调用，返回{traceId : xxx, spanId : xxx, parentSpanId : optional, done : function}
+
+
+### childTrace
+
+- traceName 服务名称
+
+- options 当前trace的相关参数
+
+childTrace服务调用，返回{traceId : xxx, spanId : xxx, parentSpanId : optional, done : function}

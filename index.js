@@ -13,6 +13,8 @@ var localOptions;
 exports.initialize = initialize;
 exports.trace = trace;
 exports.childTrace = childTrace;
+exports.traceFromHeaders = traceFromHeaders;
+exports.getHeaders = getHeaders;
 
 /**
  * [initialize 初始化zipkin client(暂只支持初始化一次)]
@@ -28,11 +30,6 @@ function initialize(options) {
     maxTraces : 50,
     autoReconnect : true,
     debug : false,
-    endPoint : {
-      host : '127.0.0.1',
-      port : 3000,
-      service : 'albi'
-    },
     localTesting : false
   }, options);
   localOptions = options;
@@ -69,7 +66,6 @@ function initialize(options) {
 /**
  * [getTrace description]
  * @param  {[type]} traceName [description]
- * @param  {[type]} options   [description]
  * @return {[type]}           [description]
  */
 function trace(traceName, options) {
@@ -77,13 +73,25 @@ function trace(traceName, options) {
     throw new Error('trace name can not be null');
   }
   options = options || {};
-  var tmpOptions = {};
-  _.forEach(options, function (v, k) {
-    tmpOptions['x-b3-' + k.toLowerCase()] = v;
-  });
-  var t = tryferTrace.Trace.fromHeaders(traceName, tmpOptions);
+  var t = new tryferTrace.Trace(traceName, options);
   var endPoint = localOptions.endPoint;
-  if (_.isEmpty(tmpOptions) && endPoint) {
+  if (_.isEmpty(options) && endPoint) {
+    t.setEndpoint(new tryferTrace.Endpoint(endPoint.host, endPoint.port, endPoint.service));
+  }
+  t.record(tryferTrace.Annotation.serverRecv(Date.now() * 1000));
+  return getTraceResult(t);
+}
+
+/**
+ * [traceFromHeaders description]
+ * @param  {[type]} traceName [description]
+ * @param  {[type]} options   [description]
+ * @return {[type]}           [description]
+ */
+function traceFromHeaders(traceName, options) {
+  var t = tryferTrace.Trace.fromHeaders(traceName, options);
+  var endPoint = localOptions.endPoint;
+  if (_.isEmpty(options) && endPoint) {
     t.setEndpoint(new tryferTrace.Endpoint(endPoint.host, endPoint.port, endPoint.service));
   }
   t.record(tryferTrace.Annotation.serverRecv(Date.now() * 1000));
@@ -126,4 +134,20 @@ function getTraceResult(t) {
     t.record(tryferTrace.Annotation.serverSend());
   };
   return result;
+}
+
+
+/**
+ * 获取http headers
+ * @param  {[type]} t [description]
+ * @return {[type]}   [description]
+ */
+function getHeaders(t) {
+  var result = _.pick(t, ['traceId', 'spanId', 'parentSpanId']);
+  var headers = {};
+  _.forEach(result, function (v, k) {
+    k = k.charAt(0).toUpperCase() +  k.substring(1);
+    headers['X-B3-' + k] = v;
+  });
+  return headers;
 }
